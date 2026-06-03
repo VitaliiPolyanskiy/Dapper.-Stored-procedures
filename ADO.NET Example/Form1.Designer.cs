@@ -50,7 +50,7 @@
             button7.Name = "button7";
             button7.Size = new System.Drawing.Size(702, 35);
             button7.TabIndex = 9;
-            button7.Text = "Параметризированный запрос";
+            button7.Text = "Параметризований запит";
             button7.UseVisualStyleBackColor = true;
             button7.Click += Select_Click;
             // 
@@ -79,7 +79,7 @@
             button8.Name = "button8";
             button8.Size = new System.Drawing.Size(967, 35);
             button8.TabIndex = 12;
-            button8.Text = " Передача параметра в хранимую процедуру для удаления записи";
+            button8.Text = " Передача параметра в збережену процедуру для видалення запису";
             button8.UseVisualStyleBackColor = true;
             button8.Click += Delete_Book_Click;
             // 
@@ -90,7 +90,7 @@
             button9.Name = "button9";
             button9.Size = new System.Drawing.Size(966, 35);
             button9.TabIndex = 13;
-            button9.Text = "Передача выходного параметра в хранимую процедуру";
+            button9.Text = "Передача вихідного параметра в збережену процедуру";
             button9.UseVisualStyleBackColor = true;
             button9.Click += How_many_books_Click;
             // 
@@ -101,7 +101,7 @@
             button10.Name = "button10";
             button10.Size = new System.Drawing.Size(966, 35);
             button10.TabIndex = 14;
-            button10.Text = "Выполнение хранимой процедуры, возвращающей значение";
+            button10.Text = "Виконання збереженої процедури, що повертає значення";
             button10.UseVisualStyleBackColor = true;
             button10.Click += MaxPages_Click;
             // 
@@ -112,7 +112,7 @@
             button11.Name = "button11";
             button11.Size = new System.Drawing.Size(966, 35);
             button11.TabIndex = 15;
-            button11.Text = "Выполнение функции, возвращающей таблицу";
+            button11.Text = "Виконання функції, що повертає таблицю";
             button11.UseVisualStyleBackColor = true;
             button11.Click += BooksList_Click;
             // 
@@ -123,7 +123,7 @@
             button13.Name = "button13";
             button13.Size = new System.Drawing.Size(966, 35);
             button13.TabIndex = 17;
-            button13.Text = "Вызов хранимой процедуры, возвращающей выборку";
+            button13.Text = "Виклик збереженої процедури, що повертає вибірку";
             button13.UseVisualStyleBackColor = true;
             button13.Click += ShowBooksByThemes_Click;
             // 
@@ -144,7 +144,7 @@
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(29, 20);
             label1.TabIndex = 19;
-            label1.Text = "От:";
+            label1.Text = "Від:";
             // 
             // label2
             // 
@@ -162,7 +162,7 @@
             button1.Name = "button1";
             button1.Size = new System.Drawing.Size(966, 35);
             button1.TabIndex = 21;
-            button1.Text = "Вызов хранимой процедуры для добавления книги в таблицу";
+            button1.Text = "Виклик збереженої процедури для додавання книги до таблиці";
             button1.UseVisualStyleBackColor = true;
             button1.Click += Add_Book_Click;
             // 
@@ -187,7 +187,7 @@
             Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             MaximizeBox = false;
             Name = "Form1";
-            Text = "База данных Книги";
+            Text = "База даних Книги";
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();

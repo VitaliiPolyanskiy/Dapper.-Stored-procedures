@@ -2,20 +2,31 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Windows.Forms;
+
 #pragma warning disable CA1416
 
 namespace ADO.NET_Example
 {
     public class Book
     {
-        public string Name { get; set; }
-        public string Author { get; set; }
-        public string Themes { get; set; }
-        public string Press { get; set; }
-        public string Pages { get; set; }
+        public string Title { get; set; } = null!;
+
+        public string Author { get; set; } = null!;
+
+        public short PublishYear { get; set; }
+
+        public decimal Price { get; set; }
+
+        public int Pages { get; set; }
+
+        public bool IsAvailable { get; set; }
+
+        public string? Genre { get; set; }
+
+        public double? Rating { get; set; }
     }
 
     public partial class Form1 : Form
@@ -41,7 +52,7 @@ namespace ADO.NET_Example
                 {
                     var lowborder = Convert.ToInt32(textBox1.Text);
                     var highborder = Convert.ToInt32(textBox2.Text);
-                    var sqlQuery = "select Name, Author, Themes, Press, Pages from Books where pages>=@lowborder and pages<=@highborder";
+                    var sqlQuery = "select Title, Author, PublishYear, Price, Pages, IsAvailable, Genre, Rating from Books where Pages>=@lowborder and Pages<=@highborder";
                     var books = db.Query<Book>(sqlQuery, new { lowborder, highborder });
                     dataGridView1.DataSource = books;
                 }
@@ -55,15 +66,15 @@ namespace ADO.NET_Example
         private void Delete_Book_Click(object sender, EventArgs e)
         {
             /*
-           create procedure Delete_Book
-           @name nvarchar (255) as
-           delete from books where name like @name 
-		   go
+             create procedure Delete_Book
+               @title nvarchar (150) as
+               delete from books where title like @title 
+		       go
 		   
-            declare @name nvarchar(255)
-            set @name = '%Visual%Basic%'
-            execute Delete_Book @name 
-            go
+                declare @title nvarchar(150)
+                set @title = '%NET%'
+                execute Delete_Book @title 
+                go
             */
 
             try
@@ -71,9 +82,9 @@ namespace ADO.NET_Example
                 using (IDbConnection db = new SqlConnection(connectionString))
                 {
                     var dynamicParams = new DynamicParameters();
-                    dynamicParams.Add("@name", "%Visual%Basic%", dbType: DbType.String, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@title", "%NET%", dbType: DbType.String, direction: ParameterDirection.Input);
                     int n = db.Execute("Delete_Book", dynamicParams, commandType: CommandType.StoredProcedure);
-                    MessageBox.Show("Количество удаленных записей: " + n.ToString());
+                    MessageBox.Show("Кількість видалених записів: " + n.ToString());
                 }
             }
             catch (Exception ex)
@@ -85,15 +96,15 @@ namespace ADO.NET_Example
         private void How_many_books_Click(object sender, EventArgs e)
         {
             /*
-            create procedure how_many_books @quantity int output  
-            as
-            SELECT @quantity = COUNT(*) FROM books 
-            go
+             create procedure how_many_books @quantity int output  
+                as
+                select @quantity = COUNT(*) from books 
+                go
 
-            declare @quantity int
-            execute how_many_books @quantity output
-            select 'Количество записей в таблице Books:',@quantity
-            go
+                declare @quantity int
+                execute how_many_books @quantity output
+                select 'Кількість записів у таблиці Books:',@quantity
+                go
             */
 
             try
@@ -103,7 +114,7 @@ namespace ADO.NET_Example
                     var dynamicParams = new DynamicParameters();
                     dynamicParams.Add("@quantity", dbType: DbType.Int32, direction: ParameterDirection.Output);
                     db.Execute("how_many_books", dynamicParams, commandType: CommandType.StoredProcedure);
-                    MessageBox.Show("Количество записей в таблице Books: " + dynamicParams.Get<int>("@quantity").ToString());
+                    MessageBox.Show("Кількість записів у таблиці Books: " + dynamicParams.Get<int>("@quantity").ToString());
                 }
             }
             catch (Exception ex)
@@ -114,27 +125,25 @@ namespace ADO.NET_Example
 
         private void MaxPages_Click(object sender, EventArgs e)
         {
-            /*
-              Отобразить издательство, у которого наибольшее количество страниц.
+            /* Відобразити жанр, який має найбільшу кількість сторінок.
 
-               create view sum_of_pages (Pages, Press)as
-               SELECT sum(Pages), Press from books
-               group by Press
-               go
-
-              create procedure MaxPages @press nvarchar(255) output
-               as
-               declare @s int
-               SELECT @press=Press, @s=sum(Pages)
+               create view sum_of_pages (pages, genre) as
+               SELECT sum(pages), genre 
                FROM books
-               GROUP BY Press
-               HAVING sum(Pages)= (select max(Pages)from sum_of_pages)
-               return @s
+               GROUP BY genre
                go
 
-                declare @izdat nvarchar(255), @summa int
-                execute @summa = MaxPages @izdat output
-                select 'Издательство:',@izdat,'Сумма:',@summa
+              create procedure MaxPages @genre varchar(50) output, @sum int output
+              as
+              SELECT @genre=genre, @sum=sum(pages)
+              FROM books
+              GROUP BY genre
+              HAVING sum(pages) = (SELECT max(pages) from sum_of_pages)
+              go
+
+               declare @genre varchar(50), @sum int
+               execute MaxPages @genre output, @sum output
+               select 'Жанр:',@genre,'Сума:',@sum
             */
 
             try
@@ -142,11 +151,11 @@ namespace ADO.NET_Example
                 using (IDbConnection db = new SqlConnection(connectionString))
                 {
                     var dynamicParams = new DynamicParameters();
-                    dynamicParams.Add("@press", dbType: DbType.String, direction: ParameterDirection.Output, size: 255);
-                    dynamicParams.Add("@s", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+                    dynamicParams.Add("@genre", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
+                    dynamicParams.Add("@sum", dbType: DbType.Int32, direction: ParameterDirection.Output);
                     db.Execute("MaxPages", dynamicParams, commandType: CommandType.StoredProcedure);
-                    MessageBox.Show("Издательство: " + dynamicParams.Get<string>("@press")
-                                        + "  Сумма: " + dynamicParams.Get<int>("@s").ToString());
+                    MessageBox.Show("Жанр: " + dynamicParams.Get<string>("@genre")
+                                        + "  Сума: " + dynamicParams.Get<int>("@sum").ToString());
                 }
             }
             catch (Exception ex)
@@ -158,23 +167,37 @@ namespace ADO.NET_Example
         private void BooksList_Click(object sender, EventArgs e)
         {
             /*
-              Create function BooksList()
-               returns table
-               as
-               return (
-                   Select Name, Author, Themes, Press, Pages                 
-                   from books 
-                   )
-               go
+              create function BooksList(
+                @Author nvarchar(50)
+                )
+                  returns @returntable table
+                  (
+                    Title nvarchar(150),
+	                Author nvarchar (100),
+                    PublishYear smallint,
+	                Price decimal (8,2),
+	                Pages int,
+	                IsAvailable bit,
+	                Genre varchar (50),
+	                Rating float
+                )
+                  as
+                  BEGIN
+                    INSERT @returntable
+                    SELECT Title, Author, PublishYear, Price, Pages, IsAvailable, Genre, Rating
+	                FROM Books WHERE Author = @Author
+                    RETURN
+                  END
+                  go
 
-              select * from BooksList()
+              select * from BooksList(N'Тарас Шевченко')
              */
 
             try
             {
                 using (IDbConnection db = new SqlConnection(connectionString))
                 {
-                    var books = db.Query<Book>("SELECT * FROM BooksList()");
+                    var books = db.Query<Book>("select * from BooksList(N'Тарас Шевченко')");
                     dataGridView1.DataSource = books;
                 }
             }
@@ -187,14 +210,14 @@ namespace ADO.NET_Example
         private void ShowBooksByThemes_Click(object sender, EventArgs e)
         {
             /*
-            create procedure ShowBooksByThemes
-            @themes nvarchar (255) as
-            select Name, Author, Themes, Press, Pages from books
-            where themes like @themes
-            order by Name desc
-            go
+             create procedure ShowBooksByGenre
+                @genre varchar (50) as
+                select * from books
+                where genre like @genre
+                order by title desc
+                go
 
-            execute ShowBooksByThemes 'Программирование' 
+            execute ShowBooksByGenre 'Фентезі'
             */
 
             try
@@ -202,8 +225,8 @@ namespace ADO.NET_Example
                 using (IDbConnection db = new SqlConnection(connectionString))
                 {
                     var dynamicParams = new DynamicParameters();
-                    dynamicParams.Add("@themes", "Программирование", dbType: DbType.String, direction: ParameterDirection.Input);
-                    var books = db.Query<Book>("ShowBooksByThemes", dynamicParams, commandType: CommandType.StoredProcedure);
+                    dynamicParams.Add("@genre", "Фентезі", dbType: DbType.String, direction: ParameterDirection.Input);
+                    var books = db.Query<Book>("ShowBooksByGenre", dynamicParams, commandType: CommandType.StoredProcedure);
                     dataGridView1.DataSource = books;
                 }
             }
@@ -216,12 +239,18 @@ namespace ADO.NET_Example
         private void Add_Book_Click(object sender, EventArgs e)
         {
             /*
-            create procedure Add_Book @name nvarchar(100), @pages int, @yearpress int,
-						 @themes nvarchar(50), @author nvarchar(50), @press nvarchar(50), 
-						 @comment nvarchar(50), @quantity int
+           create procedure Add_Book 
+			    @Title nvarchar(150),
+	            @Author nvarchar (100),
+                @PublishYear smallint,
+	            @Price decimal (8,2),
+	            @Pages int,
+	            @IsAvailable bit,
+	            @Genre varchar (50),
+	            @Rating float
             as
-            INSERT INTO books (name, pages, yearpress, themes, author, press, comment, quantity)
-            VALUES (@name, @pages, @yearpress, @themes, @author, @press, @comment, @quantity)
+            INSERT INTO books (Title, Author, PublishYear, Price, Pages, IsAvailable, Genre, Rating)
+            VALUES (@Title, @Author, @PublishYear, @Price, @Pages, @IsAvailable, @Genre, @Rating)
              */
 
             try
@@ -229,17 +258,17 @@ namespace ADO.NET_Example
                 using (IDbConnection db = new SqlConnection(connectionString))
                 {
                     var dynamicParams = new DynamicParameters();
-                    dynamicParams.Add("@name", "SQL", dbType: DbType.String, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@pages", 1000, dbType: DbType.Int32, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@yearpress", 2021, dbType: DbType.Int32, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@themes", "Базы данных", dbType: DbType.String, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@author", "Генник", dbType: DbType.String, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@press", "BHV", dbType: DbType.String, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@comment", "Справочник", dbType: DbType.String, direction: ParameterDirection.Input);
-                    dynamicParams.Add("@quantity", 200, dbType: DbType.Int32, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Title", "Платформа .NET та мова програмування C#", dbType: DbType.String, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Author", "Коноваленко", dbType: DbType.String, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@PublishYear", 2020, dbType: DbType.Int32, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Price", 1000, dbType: DbType.Decimal, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Pages", 300, dbType: DbType.Int32, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@IsAvailable", 1, dbType: DbType.Boolean, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Genre", "Програмування", dbType: DbType.String, direction: ParameterDirection.Input);
+                    dynamicParams.Add("@Rating", 4.7, dbType: DbType.Double, direction: ParameterDirection.Input);
                     int n = db.Execute("Add_Book", dynamicParams, commandType: CommandType.StoredProcedure);
                     if (n == 1)
-                        MessageBox.Show("Книга успешно добавлена в таблицу!");
+                        MessageBox.Show("Книгу успішно додано до таблиці!");
                 }
             }
             catch (Exception ex)
@@ -249,7 +278,3 @@ namespace ADO.NET_Example
         }
     }
 }
-
-
-
-
